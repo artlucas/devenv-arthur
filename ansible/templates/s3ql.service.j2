@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+[Unit]
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mount.s3ql --allow-other --fg --cachedir {{ s3_home.cache_dir }} --authfile {{ s3_home.auth_file }} s3://{{ s3_home.bucket_name }} {{ s3_home.mount_point }}
+ExecStartPost=/bin/mount --bind {{ s3_home.mount_point }}/home {{ system_user.home_dir }}
+ExecStartPost=/bin/mount --bind {{ s3_home.mount_point }}/opt /opt
+#ExecStartPost=/bin/mount --bind {{ s3_home.mount_point }}/usrlocal /usr/local
+ExecStartPost=/bin/chown -R {{ system_user.user }}:{{ system_user.user }} {{ system_user.home_dir }}
+#ExecStop=/bin/umount -l /usr/local
+ExecStop=/bin/umount -l /opt
+ExecStop=/bin/umount -l {{ system_user.home_dir }}
+ExecStop=/usr/bin/umount.s3ql {{ s3_home.mount_point }}
+TimeoutSec=5min

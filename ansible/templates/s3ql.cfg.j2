@@ -1,0 +1,7 @@
+; {{ ansible_managed }}
+
+[s3-{{ system_user.user }}]
+storage-url: s3://{{ s3_home.bucket_name }}
+backend-login: {{ secrets.aws_access_key }}
+backend-password: {{ secrets.aws_secret_key }}
+fs-passphrase: {{ secrets.system_user.password }}

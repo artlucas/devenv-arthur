@@ -1,0 +1,12 @@
+---
+system_user:
+  user: "arthur"
+  password: "{{ secrets.system_user.password }}"
+  groups: "sudo,users,vagrant"
+  home_dir: "/home/arthur"
+
+s3_home:
+  bucket_name: "tna-devenv-{{ system_user.user }}"
+  auth_file: "/etc/s3ql-{{ system_user.user }}.cfg"
+  mount_point: "/mnt/s3ql-{{ system_user.user }}"
+  cache_dir: "/tmp/s3ql-{{ system_user.user }}-cache"

@@ -1,0 +1,54 @@
+---
+- hosts: "all"
+  sudo: yes
+
+  vars_files:
+    - "vars/secret_vars.yml"
+    - "vars/vars.yml"
+
+  tasks:
+    - name: "S3QL | installation"
+      apt:
+        name: "s3ql"
+
+    # - name: "S3QL | Create S3 bucket for home directory"
+    #   s3_bucket:
+    #     aws_access_key: "{{ aws_access_key }}"
+    #     aws_secret_key: "{{ aws_secret_key }}"
+    #     name: "{{ s3_home.bucket_name }}"
+
+    - name: "S3QL | Write systemd service"
+      template:
+        src: "templates/s3ql.service.j2"
+        dest: "/lib/systemd/system/s3ql.service"
+        mode: 0644
+
+    - name: "S3QL | Create directories"
+      file:
+        path: "{{ item }}"
+        state: "directory"
+      with_items:
+        - "{{ s3_home.mount_point }}"
+        - "{{ s3_home.mount_point }}/home"
+        - "{{ s3_home.mount_point }}/opt"
+        - "{{ s3_home.mount_point }}/usrlocal"
+
+    - name: "User | Create system user"
+      user:
+        name: "{{ system_user.user }}"
+        password: "{{ secrets.system_user.password }}"
+        createhome: yes
+        groups: "{{ system_user.groups }}"
+        shell: "/bin/bash"
+
+    - name: "S3QL | Write auth file"
+      template:
+        src: "templates/s3ql.cfg.j2"
+        dest: "{{ s3_home.auth_file }}"
+        owner: "{{ system_user.user }}"
+        mode: 0600
+
+    - name: "S3QL | Start service"
+      service:
+        name: "s3ql"
+        state: "started"
